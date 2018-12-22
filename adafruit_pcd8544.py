@@ -72,7 +72,7 @@ _PCD8544_SETBIAS = const(0x10)
 _PCD8544_SETVOP = const(0x80)
 
 
-class PCD8544(object):
+class PCD8544(framebuf.FrameBuffer):
     """Nokia 5110/3310 PCD8544-based LCD display."""
     # pylint: disable=too-many-instance-attributes
 
@@ -87,20 +87,8 @@ class PCD8544(object):
         if reset_pin:
             reset_pin.switch_to_output(value=True)
 
-        self.width = _LCDWIDTH
-        self.height = _LCDHEIGHT
-        self.buffer = bytearray((self.height // 8) * self.width)
-        self.framebuf = framebuf.FrameBuffer1(self.buffer, self.width, self.height)
-        self.fill = self.framebuf.fill
-        self.pixel = self.framebuf.pixel
-        self.line = self.framebuf.line
-        self.text = self.framebuf.text
-        self.scroll = self.framebuf.scroll
-        self.blit = self.framebuf.blit
-        self.vline = self.framebuf.vline
-        self.hline = self.framebuf.hline
-        self.fill_rect = self.framebuf.fill_rect
-        self.rect = self.framebuf.rect
+        self.buffer = bytearray((_LCDHEIGHT // 8) * _LCDWIDTH)
+        super().__init__(self.buffer, _LCDWIDTH, _LCDHEIGHT)
 
         self._contrast = None
         self._bias = None
