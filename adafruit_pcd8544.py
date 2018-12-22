@@ -124,7 +124,7 @@ class PCD8544(object):
         """Send a command to the SPI device"""
         self._dc_pin.value = 0
         with self.spi_device as spi:
-            spi.write(bytearray([cmd]))
+            spi.write(bytearray([cmd])) # pylint: disable=no-member
 
     def extended_command(self, cmd):
         """Send a command in extended mode"""
@@ -141,7 +141,7 @@ class PCD8544(object):
         self.write_cmd(_PCD8544_SETXADDR)
         self._dc_pin.value = True
         with self.spi_device as spi:
-            spi.write(bytes(self.buffer))
+            spi.write(self.buffer) # pylint: disable=no-member
 
     @property
     def invert(self):
