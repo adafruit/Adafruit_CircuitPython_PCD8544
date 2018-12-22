@@ -44,6 +44,7 @@ Implementation Notes
 """
 
 import time
+from micropython import const
 from adafruit_bus_device import spi_device
 try:
     import framebuf
@@ -73,6 +74,7 @@ _PCD8544_SETVOP = const(0x80)
 
 class PCD8544(object):
     """Nokia 5110/3310 PCD8544-based LCD display."""
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, spi, dc_pin, cs_pin, reset_pin=None, *,
                  contrast=80, bias=4, baudrate=1000000):
@@ -100,6 +102,10 @@ class PCD8544(object):
         self.fill_rect = self.framebuf.fill_rect
         self.rect = self.framebuf.rect
 
+        self._contrast = None
+        self._bias = None
+        self._invert = False
+
         self.reset()
         # Set LCD bias.
         self.bias = bias
@@ -120,11 +126,11 @@ class PCD8544(object):
         with self.spi_device as spi:
             spi.write(bytearray([cmd]))
 
-    def extended_command(self, c):
+    def extended_command(self, cmd):
         """Send a command in extended mode"""
         # Set extended command mode
         self.write_cmd(_PCD8544_FUNCTIONSET | _PCD8544_EXTENDEDINSTRUCTION)
-        self.write_cmd(c)
+        self.write_cmd(cmd)
         # Set normal display mode.
         self.write_cmd(_PCD8544_FUNCTIONSET)
         self.write_cmd(_PCD8544_DISPLAYCONTROL | _PCD8544_DISPLAYNORMAL)

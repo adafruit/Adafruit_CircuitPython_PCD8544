@@ -33,13 +33,13 @@ time.sleep(0.1)
 print("Lines test")
 # we'll draw from corner to corner, lets define all the pair coordinates here
 corners = ((0, 0), (0, display.height-1), (display.width-1, 0),
-        (display.width-1, display.height-1))
+           (display.width-1, display.height-1))
 
 display.fill(0)
 for corner_from in corners:
- for corner_to in corners:
-     display.line(corner_from[0], corner_from[1],
-                  corner_to[0], corner_to[1], 1)
+    for corner_to in corners:
+        display.line(corner_from[0], corner_from[1],
+                     corner_to[0], corner_to[1], 1)
 display.show()
 time.sleep(0.1)
 
@@ -48,7 +48,7 @@ display.fill(0)
 w_delta = display.width / 10
 h_delta = display.height / 10
 for i in range(11):
- display.rect(0, 0, int(w_delta*i), int(h_delta*i), 1)
+    display.rect(0, 0, int(w_delta*i), int(h_delta*i), 1)
 display.show()
 time.sleep(0.1)
 
