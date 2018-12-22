@@ -1,0 +1,175 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2018 Tony DiCola, ladyada for Adafruit Industries
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+"""
+`adafruit_pcd8544`
+====================================================
+
+A display control library for Nokia PCD8544 monochrome displays
+
+* Author(s): ladyada
+
+Implementation Notes
+--------------------
+
+**Hardware:**
+
+* `Nokia PCD8544 Display <https://www.adafruit.com/product/338>`_
+
+**Software and Dependencies:**
+
+* Adafruit CircuitPython firmware for the supported boards:
+  https://github.com/adafruit/circuitpython/releases
+
+* Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
+
+"""
+
+import time
+from adafruit_bus_device import spi_device
+try:
+    import framebuf
+except ImportError:
+    import adafruit_framebuf as framebuf
+
+__version__ = "0.0.0-auto.0"
+__repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PCD8544.git"
+
+_LCDWIDTH = const(84)
+_LCDHEIGHT = const(48)
+_PCD8544_POWERDOWN = const(0x04)
+_PCD8544_ENTRYMODE = const(0x02)
+_PCD8544_EXTENDEDINSTRUCTION = const(0x01)
+_PCD8544_DISPLAYBLANK = const(0x0)
+_PCD8544_DISPLAYNORMAL = const(0x4)
+_PCD8544_DISPLAYALLON = const(0x1)
+_PCD8544_DISPLAYINVERTED = const(0x5)
+_PCD8544_FUNCTIONSET = const(0x20)
+_PCD8544_DISPLAYCONTROL = const(0x08)
+_PCD8544_SETYADDR = const(0x40)
+_PCD8544_SETXADDR = const(0x80)
+_PCD8544_SETTEMP = const(0x04)
+_PCD8544_SETBIAS = const(0x10)
+_PCD8544_SETVOP = const(0x80)
+
+
+class PCD8544(object):
+    """Nokia 5110/3310 PCD8544-based LCD display."""
+
+    def __init__(self, spi, dc_pin, cs_pin, reset_pin=None, *,
+                 contrast=80, bias=4, baudrate=1000000):
+        self._dc_pin = dc_pin
+        dc_pin.switch_to_output(value=False)
+
+        self.spi_device = spi_device.SPIDevice(spi, cs_pin, baudrate=baudrate)
+
+        self._reset_pin = reset_pin
+        if reset_pin:
+            reset_pin.switch_to_output(value=True)
+
+        self.width = _LCDWIDTH
+        self.height = _LCDHEIGHT
+        self.buffer = bytearray((self.height // 8) * self.width)
+        self.framebuf = framebuf.FrameBuffer1(self.buffer, self.width, self.height)
+        self.fill = self.framebuf.fill
+        self.pixel = self.framebuf.pixel
+        self.line = self.framebuf.line
+        self.text = self.framebuf.text
+        self.scroll = self.framebuf.scroll
+        self.blit = self.framebuf.blit
+        self.vline = self.framebuf.vline
+        self.hline = self.framebuf.hline
+        self.fill_rect = self.framebuf.fill_rect
+        self.rect = self.framebuf.rect
+
+        self.reset()
+        # Set LCD bias.
+        self.bias = bias
+        self.contrast = contrast
+
+    def reset(self):
+        """Reset the display"""
+        if self._reset_pin:
+            # Toggle RST low to reset.
+            self._reset_pin.value = False
+            time.sleep(0.5)
+            self._reset_pin.value = True
+            time.sleep(0.5)
+
+    def write_cmd(self, cmd):
+        """Send a command to the SPI device"""
+        self._dc_pin.value = 0
+        with self.spi_device as spi:
+            spi.write(bytearray([cmd]))
+
+    def extended_command(self, c):
+        """Send a command in extended mode"""
+        # Set extended command mode
+        self.write_cmd(_PCD8544_FUNCTIONSET | _PCD8544_EXTENDEDINSTRUCTION)
+        self.write_cmd(c)
+        # Set normal display mode.
+        self.write_cmd(_PCD8544_FUNCTIONSET)
+        self.write_cmd(_PCD8544_DISPLAYCONTROL | _PCD8544_DISPLAYNORMAL)
+
+    def show(self):
+        """write out the frame buffer via SPI"""
+        self.write_cmd(_PCD8544_SETYADDR)
+        self.write_cmd(_PCD8544_SETXADDR)
+        self._dc_pin.value = True
+        with self.spi_device as spi:
+            spi.write(bytes(self.buffer))
+
+    @property
+    def invert(self):
+        """Whether the display is inverted, cached value"""
+        return self._invert
+
+    @invert.setter
+    def invert(self, val):
+        """Set invert on or normal display on"""
+        self._invert = val
+        self.write_cmd(_PCD8544_FUNCTIONSET)
+        if val:
+            self.write_cmd(_PCD8544_DISPLAYCONTROL | _PCD8544_DISPLAYINVERTED)
+        else:
+            self.write_cmd(_PCD8544_DISPLAYCONTROL | _PCD8544_DISPLAYNORMAL)
+
+    @property
+    def contrast(self):
+        """The cached contrast value"""
+        return self._contrast
+
+    @contrast.setter
+    def contrast(self, val):
+        """Set contrast to specified value (should be 0-127)."""
+        self._contrast = max(0, min(val, 0x7f)) # Clamp to values 0-0x7f
+        self.extended_command(_PCD8544_SETVOP | self._contrast)
+
+    @property
+    def bias(self):
+        """The cached bias value"""
+        return self._bias
+
+    @bias.setter
+    def bias(self, val):
+        """Set display bias"""
+        self._bias = val
+        self.extended_command(_PCD8544_SETBIAS | self._bias)
