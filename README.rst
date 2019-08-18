@@ -13,7 +13,7 @@ Introduction
     :target: https://travis-ci.com/adafruit/Adafruit_CircuitPython_PCD8544
     :alt: Build Status
 
-A display control library for Nokia PCD8544 monochrome displays
+A display control library for Nokia 5110 PCD8544 monochrome displays
 
 Dependencies
 =============
