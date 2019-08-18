@@ -23,7 +23,7 @@
 `adafruit_pcd8544`
 ====================================================
 
-A display control library for Nokia PCD8544 monochrome displays
+A display control library for Nokia 5110 PCD8544 monochrome displays
 
 * Author(s): ladyada
 
@@ -32,7 +32,7 @@ Implementation Notes
 
 **Hardware:**
 
-* `Nokia PCD8544 Display <https://www.adafruit.com/product/338>`_
+* `Nokia 5110 PCD8544 Display <https://www.adafruit.com/product/338>`_
 
 **Software and Dependencies:**
 
