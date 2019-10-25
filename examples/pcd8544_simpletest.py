@@ -7,13 +7,19 @@ import adafruit_pcd8544
 
 # Initialize SPI bus and control pins
 spi = busio.SPI(board.SCK, MOSI=board.MOSI)
-dc = digitalio.DigitalInOut(board.D5) # data/command
-cs = digitalio.DigitalInOut(board.D6) # Chip select
-reset = digitalio.DigitalInOut(board.D7) # reset
+dc = digitalio.DigitalInOut(board.D6) # data/command
+cs = digitalio.DigitalInOut(board.D5) # Chip select
+reset = digitalio.DigitalInOut(board.D9) # reset
 
 display = adafruit_pcd8544.PCD8544(spi, dc, cs, reset)
-display.bias = 5
-display.contrast = 100
+
+display.bias = 4
+display.contrast = 60
+
+# Turn on the Backlight LED
+backlight = digitalio.DigitalInOut(board.D10) # backlight
+backlight.switch_to_output()
+backlight.value = True
 
 print("Pixel test")
 # Clear the display.  Always call show after changing pixels to make the display
@@ -28,7 +34,7 @@ display.pixel(display.width//2, display.height//2, 1)
 # Set a pixel in the opposite corner position.
 display.pixel(display.width-1, display.height-1, 1)
 display.show()
-time.sleep(0.1)
+time.sleep(2)
 
 print("Lines test")
 # we'll draw from corner to corner, lets define all the pair coordinates here
@@ -41,7 +47,7 @@ for corner_from in corners:
         display.line(corner_from[0], corner_from[1],
                      corner_to[0], corner_to[1], 1)
 display.show()
-time.sleep(0.1)
+time.sleep(2)
 
 print("Rectangle test")
 display.fill(0)
@@ -50,14 +56,14 @@ h_delta = display.height / 10
 for i in range(11):
     display.rect(0, 0, int(w_delta*i), int(h_delta*i), 1)
 display.show()
-time.sleep(0.1)
+time.sleep(2)
 
 print("Text test")
 display.fill(0)
 display.text('hello world', 0, 0, 1)
 display.text('this is the', 0, 8, 1)
 display.text('CircuitPython', 0, 16, 1)
-display.text('adafruit lib', 0, 24, 1)
+display.text('adafruit lib-', 0, 24, 1)
 display.text('rary for the', 0, 32, 1)
 display.text('PCD8544! :) ', 0, 40, 1)
 
