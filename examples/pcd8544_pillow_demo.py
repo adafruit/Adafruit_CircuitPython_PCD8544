@@ -13,9 +13,6 @@ import digitalio
 from PIL import Image, ImageDraw, ImageFont
 import adafruit_pcd8544
 
-# Define the Reset Pin
-oled_reset = digitalio.DigitalInOut(board.D4)
-
 # Parameters to Change
 BORDER = 5
 FONTSIZE = 10
@@ -47,8 +44,9 @@ image = Image.new('1', (display.width, display.height))
 # Get drawing object to draw on image.
 draw = ImageDraw.Draw(image)
 
-# Draw a white background
+# Draw a black background
 draw.rectangle((0, 0, display.width, display.height), outline=255, fill=255)
+
 
 # Draw a smaller inner rectangle
 draw.rectangle((BORDER, BORDER, display.width - BORDER - 1, display.height - BORDER - 1),
