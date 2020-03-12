@@ -46,6 +46,7 @@ Implementation Notes
 import time
 from micropython import const
 from adafruit_bus_device import spi_device
+
 try:
     import framebuf
 except ImportError:
@@ -74,10 +75,20 @@ _PCD8544_SETVOP = const(0x80)
 
 class PCD8544(framebuf.FrameBuffer):
     """Nokia 5110/3310 PCD8544-based LCD display."""
+
     # pylint: disable=too-many-instance-attributes
 
-    def __init__(self, spi, dc_pin, cs_pin, reset_pin=None, *,
-                 contrast=80, bias=4, baudrate=1000000):
+    def __init__(
+        self,
+        spi,
+        dc_pin,
+        cs_pin,
+        reset_pin=None,
+        *,
+        contrast=80,
+        bias=4,
+        baudrate=1000000
+    ):
         self._dc_pin = dc_pin
         dc_pin.switch_to_output(value=False)
 
@@ -112,7 +123,7 @@ class PCD8544(framebuf.FrameBuffer):
         """Send a command to the SPI device"""
         self._dc_pin.value = 0
         with self.spi_device as spi:
-            spi.write(bytearray([cmd])) # pylint: disable=no-member
+            spi.write(bytearray([cmd]))  # pylint: disable=no-member
 
     def extended_command(self, cmd):
         """Send a command in extended mode"""
@@ -129,7 +140,7 @@ class PCD8544(framebuf.FrameBuffer):
         self.write_cmd(_PCD8544_SETXADDR)
         self._dc_pin.value = True
         with self.spi_device as spi:
-            spi.write(self.buffer) # pylint: disable=no-member
+            spi.write(self.buffer)  # pylint: disable=no-member
 
     @property
     def invert(self):
@@ -154,7 +165,7 @@ class PCD8544(framebuf.FrameBuffer):
     @contrast.setter
     def contrast(self, val):
         """Set contrast to specified value (should be 0-127)."""
-        self._contrast = max(0, min(val, 0x7f)) # Clamp to values 0-0x7f
+        self._contrast = max(0, min(val, 0x7F))  # Clamp to values 0-0x7f
         self.extended_command(_PCD8544_SETVOP | self._contrast)
 
     @property
