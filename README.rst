@@ -56,6 +56,11 @@ Usage Example
 
 See examples folder for demos of pixels, lines, and text!
 
+Documentation
+=============
+
+API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/pcd8544/en/latest/>`_.
+
 Contributing
 ============
 
