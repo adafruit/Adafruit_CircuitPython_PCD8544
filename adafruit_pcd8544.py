@@ -36,7 +36,7 @@ try:
 except ImportError:
     import adafruit_framebuf as framebuf
 
-__version__ = "0.0.0-auto.0"
+__version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PCD8544.git"
 
 _LCDWIDTH = const(84)
