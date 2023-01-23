@@ -36,6 +36,13 @@ try:
 except ImportError:
     import adafruit_framebuf as framebuf
 
+try:
+    from typing import Optional
+    from digitalio import DigitalInOut
+    from busio import SPI
+except ImportError:
+    pass
+
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_PCD8544.git"
 
@@ -64,15 +71,15 @@ class PCD8544(framebuf.FrameBuffer):
 
     def __init__(
         self,
-        spi,
-        dc_pin,
-        cs_pin,
-        reset_pin=None,
+        spi: SPI,
+        dc_pin: DigitalInOut,
+        cs_pin: DigitalInOut,
+        reset_pin: Optional[DigitalInOut] = None,
         *,
-        contrast=80,
-        bias=4,
-        baudrate=1000000
-    ):
+        contrast: int = 80,
+        bias: int = 4,
+        baudrate: int = 1000000
+    ) -> None:
         self._dc_pin = dc_pin
         dc_pin.switch_to_output(value=False)
 
@@ -94,7 +101,7 @@ class PCD8544(framebuf.FrameBuffer):
         self.bias = bias
         self.contrast = contrast
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the display"""
         if self._reset_pin:
             # Toggle RST low to reset.
@@ -103,13 +110,13 @@ class PCD8544(framebuf.FrameBuffer):
             self._reset_pin.value = True
             time.sleep(0.5)
 
-    def write_cmd(self, cmd):
+    def write_cmd(self, cmd: int) -> None:
         """Send a command to the SPI device"""
         self._dc_pin.value = 0
         with self.spi_device as spi:
             spi.write(bytearray([cmd]))  # pylint: disable=no-member
 
-    def extended_command(self, cmd):
+    def extended_command(self, cmd: int) -> None:
         """Send a command in extended mode"""
         # Set extended command mode
         self.write_cmd(_PCD8544_FUNCTIONSET | _PCD8544_EXTENDEDINSTRUCTION)
@@ -118,7 +125,7 @@ class PCD8544(framebuf.FrameBuffer):
         self.write_cmd(_PCD8544_FUNCTIONSET)
         self.write_cmd(_PCD8544_DISPLAYCONTROL | _PCD8544_DISPLAYNORMAL)
 
-    def show(self):
+    def show(self) -> None:
         """write out the frame buffer via SPI"""
         self.write_cmd(_PCD8544_SETYADDR)
         self.write_cmd(_PCD8544_SETXADDR)
@@ -127,12 +134,12 @@ class PCD8544(framebuf.FrameBuffer):
             spi.write(self.buffer)  # pylint: disable=no-member
 
     @property
-    def invert(self):
+    def invert(self) -> bool:
         """Whether the display is inverted, cached value"""
         return self._invert
 
     @invert.setter
-    def invert(self, val):
+    def invert(self, val: bool) -> None:
         """Set invert on or normal display on"""
         self._invert = val
         self.write_cmd(_PCD8544_FUNCTIONSET)
@@ -142,23 +149,23 @@ class PCD8544(framebuf.FrameBuffer):
             self.write_cmd(_PCD8544_DISPLAYCONTROL | _PCD8544_DISPLAYNORMAL)
 
     @property
-    def contrast(self):
+    def contrast(self) -> int:
         """The cached contrast value"""
         return self._contrast
 
     @contrast.setter
-    def contrast(self, val):
+    def contrast(self, val: int) -> None:
         """Set contrast to specified value (should be 0-127)."""
         self._contrast = max(0, min(val, 0x7F))  # Clamp to values 0-0x7f
         self.extended_command(_PCD8544_SETVOP | self._contrast)
 
     @property
-    def bias(self):
+    def bias(self) -> int:
         """The cached bias value"""
         return self._bias
 
     @bias.setter
-    def bias(self, val):
+    def bias(self, val: int) -> None:
         """Set display bias"""
         self._bias = val
         self.extended_command(_PCD8544_SETBIAS | self._bias)
