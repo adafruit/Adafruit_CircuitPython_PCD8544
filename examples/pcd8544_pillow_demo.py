@@ -14,6 +14,7 @@ import board
 import busio
 import digitalio
 from PIL import Image, ImageDraw, ImageFont
+
 import adafruit_pcd8544
 
 # Parameters to Change
